@@ -55,7 +55,6 @@
             android:layout_height="wrap_content"
             android:textColor="@color/clock_jbblue"
             style="@style/widget_big_thin"
-            android:visibility="gone"
             android:layout_gravity="center_horizontal|top" />
 
         <!-- Minutes -->
