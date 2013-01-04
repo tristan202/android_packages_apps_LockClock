@@ -18,5 +18,6 @@
 
     <color name="clock_white">#ffffff</color>
     <color name="clock_gray">#80ffffff</color>
+    <color name="clock_jbblue">#287AA9</color>
 
 </resources>

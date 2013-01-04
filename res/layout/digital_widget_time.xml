@@ -50,6 +50,14 @@
             android:textColor="@color/clock_white"
             android:layout_gravity="center_horizontal|top" />
 
+        <TextView android:id="@+id/clock_seperator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/clock_jbblue"
+            style="@style/widget_big_thin"
+            android:visibility="gone"
+            android:layout_gravity="center_horizontal|top" />
+
         <!-- Minutes -->
         <TextClock
             android:id="@+id/clock2_regular"
@@ -81,7 +89,7 @@
         <TextClock android:id="@+id/date_bold"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/clock_white"
+            android:textColor="@color/clock_jbblue"
             android:format12Hour="@string/abbrev_wday_month_day_no_year"
             android:format24Hour="@string/abbrev_wday_month_day_no_year"
             style="@style/label_bold"
@@ -89,7 +97,7 @@
         <TextClock android:id="@+id/date_regular"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/clock_white"
+            android:textColor="@color/clock_jbblue"
             android:format12Hour="@string/abbrev_wday_month_day_no_year"
             android:format24Hour="@string/abbrev_wday_month_day_no_year"
             style="@style/label_thin"
