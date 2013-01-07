@@ -120,6 +120,7 @@
     <string name="use_digital_clock_title">Use Digital clock</string>
     <string name="use_digital_clock_summary">Select to toggle between the Digital and the Analog clock</string>
     <string name="clock_font_title">Bold hours</string>
+    <string name="clock_font_separator_title">Bold separator</string>
     <string name="clock_font_minutes_title">Bold minutes</string>
     <string name="clock_font_date_title">Bold date and alarm</string>
     <string name="show_alarm_title">Show next alarm</string>

@@ -205,6 +205,15 @@ public class ClockWidgetService extends Service {
             clockViews.setViewVisibility(R.id.clock1_bold, View.GONE);
         }
 
+        // Separator
+        if (mSharedPrefs.getBoolean(Constants.CLOCK_FONT_SEPARATOR, true)) {
+            clockViews.setViewVisibility(R.id.clock_separator_bold, View.VISIBLE);
+            clockViews.setViewVisibility(R.id.clock_separator_regular, View.GONE);
+        } else {
+            clockViews.setViewVisibility(R.id.clock_separator_regular, View.VISIBLE);
+            clockViews.setViewVisibility(R.id.clock_separator_bold, View.GONE);
+        }
+
         // Minutes
         if (mSharedPrefs.getBoolean(Constants.CLOCK_FONT_MINUTES, false)) {
             clockViews.setViewVisibility(R.id.clock2_bold, View.VISIBLE);
@@ -233,6 +242,8 @@ public class ClockWidgetService extends Service {
         float fontSize = mContext.getResources().getDimension(R.dimen.widget_big_font_size);
         clockViews.setTextViewTextSize(R.id.clock1_bold, TypedValue.COMPLEX_UNIT_PX, fontSize * scale);
         clockViews.setTextViewTextSize(R.id.clock1_regular, TypedValue.COMPLEX_UNIT_PX, fontSize * scale);
+        clockViews.setTextViewTextSize(R.id.clock_separator_bold, TypedValue.COMPLEX_UNIT_PX, fontSize * scale);
+        clockViews.setTextViewTextSize(R.id.clock_separator_regular, TypedValue.COMPLEX_UNIT_PX, fontSize * scale);
         clockViews.setTextViewTextSize(R.id.clock2_bold, TypedValue.COMPLEX_UNIT_PX, fontSize * scale);
         clockViews.setTextViewTextSize(R.id.clock2_regular, TypedValue.COMPLEX_UNIT_PX, fontSize * scale);
     }
