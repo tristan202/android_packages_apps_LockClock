@@ -28,7 +28,7 @@
     <string name="widget_12_hours_format_m" translatable="false">mm<font size="15">aa</font></string>
     <string name="widget_24_hours_format_h" translatable="false">kk</string>
     <string name="widget_24_hours_format_m" translatable="false">mm</string>
-    <string name="widget_clock_seperator" translatable="false">:</string>
+    <string name="widget_clock_separator" translatable="false">:</string>
 
     <!-- Weather - Weather codes -->
     <string name="weather_0">Tornado</string>

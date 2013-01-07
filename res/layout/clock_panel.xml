@@ -76,12 +76,12 @@
             android:textColor="@color/clock_white"
             android:layout_gravity="center_horizontal|top" />
 
-        <TextView android:id="@+id/clock_seperator"
+        <TextView android:id="@+id/clock_separator"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/clock_jbblue"
             style="@style/widget_big_thin"
-            android:text="@string/widget_clock_seperator"
+            android:text="@string/widget_clock_separator"
             android:layout_gravity="center_horizontal|top" />
 
         <!-- Minutes -->
