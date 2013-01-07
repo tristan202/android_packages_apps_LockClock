@@ -21,14 +21,6 @@
     <string name="unknown">Ukendt</string>
     <string name="cancel">Annuller</string>
 
-    <!-- Formating strings for widget clock -->
-    <string name="widget_12_hours_format_h" translatable="false">h</string>
-    <string name="widget_12_hours_format_no_ampm_m" translatable="false">mm</string>
-    <string name="widget_12_hours_format_m" translatable="false">mm<font size="15">aa</font></string>
-    <string name="widget_24_hours_format_h" translatable="false">kk</string>
-    <string name="widget_24_hours_format_m" translatable="false">mm</string>
-    <string name="widget_clock_seperator" translatable="false">:</string>
-
     <!-- Weather - Weather codes -->
     <string name="weather_0">Tornado</string>
     <string name="weather_1">Tropisk Storm</string>
