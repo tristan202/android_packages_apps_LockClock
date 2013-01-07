@@ -76,20 +76,20 @@
             android:textColor="@color/clock_white"
             android:layout_gravity="center_horizontal|top" />
 
+        <TextView android:id="@+id/clock_separator_bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/clock_jbblue"
+            style="@style/widget_big_bold"
+            android:text="@string/widget_clock_separator"
+            android:layout_gravity="center_horizontal|top" />
+
         <TextView android:id="@+id/clock_separator_regular"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/clock_jbblue"
             style="@style/widget_big_thin"
             android:visibility="gone"
-            android:text="@string/widget_clock_separator"
-            android:layout_gravity="center_horizontal|top" />
-
-        <TextView android:id="@+id/clock_separator_bold"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/clock_jbblue"
-            style="@style/widget_big_bold"
             android:text="@string/widget_clock_separator"
             android:layout_gravity="center_horizontal|top" />
 
