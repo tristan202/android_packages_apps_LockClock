@@ -43,7 +43,7 @@
             android:defaultValue="true" />
 
         <CheckBoxPreference
-            android:key="clock_separator"
+            android:key="clock_font_separator"
             android:title="@string/clock_font_separator_title"
             android:dependency="clock_digital"
             android:defaultValue="true" />
