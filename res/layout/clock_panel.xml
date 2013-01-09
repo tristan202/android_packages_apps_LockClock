@@ -77,16 +77,14 @@
             android:layout_gravity="center_horizontal|top" />
 
         <!-- Separator -->
-        <TextClock
-            android:id="@+id/clock_separator_bold"
+        <TextView android:id="@+id/clock_separator_bold"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             style="@style/widget_big_bold"
             android:textColor="@color/clock_jbblue"
             android:text="@string/widget_clock_separator"
             android:layout_gravity="center_horizontal|top" />
-        <TextClock
-            android:id="@+id/clock_separator_regular"
+        <TextView android:id="@+id/clock_separator_regular"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             style="@style/widget_big_thin"
