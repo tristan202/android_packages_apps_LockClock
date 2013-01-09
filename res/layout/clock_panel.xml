@@ -83,6 +83,7 @@
             android:layout_height="wrap_content"
             style="@style/widget_big_bold"
             android:textColor="@color/clock_jbblue"
+            android:text="@string/widget_clock_separator"
             android:layout_gravity="center_horizontal|top" />
         <TextClock
             android:id="@+id/clock_separator_regular"
@@ -91,6 +92,7 @@
             style="@style/widget_big_thin"
             android:visibility="gone"
             android:textColor="@color/clock_jbblue"
+            android:text="@string/widget_clock_separator"
             android:layout_gravity="center_horizontal|top" />
 
         <!-- Minutes -->
