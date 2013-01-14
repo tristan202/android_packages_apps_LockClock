@@ -17,7 +17,6 @@
 <resources>
 
     <!-- General strings -->
-    <string name="app_name">Chronus</string>
     <string name="unknown">Ukendt</string>
     <string name="cancel">Annuller</string>
 
