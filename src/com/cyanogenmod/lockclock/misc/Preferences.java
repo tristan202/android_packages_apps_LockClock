@@ -43,6 +43,9 @@ public class Preferences {
     public static boolean useBoldFontForHours(Context context) {
         return getPrefs(context).getBoolean(Constants.CLOCK_FONT, true);
     }
+    public static boolean useBoldFontForSeparator(Context context) {
+        return getPrefs(context).getBoolean(Constants.CLOCK_FONT_SEPARATOR, false);
+    }
     public static boolean useBoldFontForMinutes(Context context) {
         return getPrefs(context).getBoolean(Constants.CLOCK_FONT_MINUTES, false);
     }

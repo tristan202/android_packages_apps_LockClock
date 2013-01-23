@@ -24,7 +24,7 @@ public class Constants {
     // Widget Settings
     public static final String CLOCK_DIGITAL = "clock_digital";
     public static final String CLOCK_FONT = "clock_font";
-    public static final String CLOCK_FONT_SEPARATOR = "clock_font_separator";
+    public static final String CLOCK_FONT_SEPERATOR = "clock_font_seperator";
     public static final String CLOCK_FONT_MINUTES = "clock_font_minutes";
     public static final String CLOCK_FONT_DATE = "clock_font_date";
     public static final String CLOCK_SHOW_ALARM = "clock_show_alarm";

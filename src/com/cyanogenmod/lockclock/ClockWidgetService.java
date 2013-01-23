@@ -186,8 +186,8 @@ public class ClockWidgetService extends IntentService {
             clockViews.setViewVisibility(R.id.clock1_bold, View.GONE);
         }
 
-        // Separator
-        if (mSharedPrefs.getBoolean(Constants.CLOCK_FONT_SEPARATOR, true)) {
+        // Seprator
+        if (Preferences.useBoldFontForSeparator(this)) {
             clockViews.setViewVisibility(R.id.clock_separator_bold, View.VISIBLE);
             clockViews.setViewVisibility(R.id.clock_separator_regular, View.GONE);
         } else {
