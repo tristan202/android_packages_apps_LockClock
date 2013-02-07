@@ -148,7 +148,7 @@
             android:drawablePadding="2dip"
             android:drawableLeft="@drawable/ic_alarm_small"
             android:textColor="@color/clock_gray"
-            style="@style/label_bold"
+            style="@style/alarm_label_bold"
             android:layout_marginLeft="8dip"
             android:gravity="center"
             android:visibility="gone" />
@@ -158,7 +158,7 @@
             android:drawablePadding="2dip"
             android:drawableLeft="@drawable/ic_alarm_small"
             android:textColor="@color/clock_gray"
-            style="@style/label_thin"
+            style="@style/alarm_label_thin"
             android:layout_marginLeft="8dip"
             android:gravity="center"
             android:visibility="gone" />
