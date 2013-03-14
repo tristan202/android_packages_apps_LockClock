@@ -62,6 +62,8 @@ public class WeatherPreferences extends PreferenceFragment implements
 
     private CheckBoxPreference mUseCustomLoc;
     private EditTextPreference mCustomWeatherLoc;
+    private ListPreference mFontColor;
+    private ListPreference mTimestampFontColor;
 
     private Context mContext;
     private ContentResolver mResolver;
@@ -80,6 +82,10 @@ public class WeatherPreferences extends PreferenceFragment implements
         mCustomWeatherLoc = (EditTextPreference) findPreference(Constants.WEATHER_CUSTOM_LOCATION_STRING);
         mCustomWeatherLoc.setOnPreferenceClickListener(this);
         updateLocationSummary();
+
+        mFontColor = (ListPreference) findPreference(Constants.WEATHER_FONT_COLOR);
+        mTimestampFontColor = (ListPreference) findPreference(Constants.WEATHER_TIMESTAMP_FONT_COLOR);
+        updateFontColorsSummary();
 
         // Show a warning if location manager is disabled and there is no custom location set
         if (!Settings.Secure.isLocationProviderEnabled(mResolver,
@@ -234,12 +240,22 @@ public class WeatherPreferences extends PreferenceFragment implements
         builder.setPositiveButton(R.string.weather_retrieve_location_dialog_enable_button,
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
-                        Settings.Secure.setLocationProviderEnabled(mResolver,
-                                LocationManager.NETWORK_PROVIDER, true);
+                        Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        mContext.startActivity(intent);
                     }
                 });
         builder.setNegativeButton(R.string.cancel, null);
         dialog = builder.create();
         dialog.show();
+    }
+
+    private void updateFontColorsSummary() {
+        if (mFontColor != null) {
+            mFontColor.setSummary(mFontColor.getEntry());
+        }
+        if (mTimestampFontColor != null) {
+            mTimestampFontColor.setSummary(mTimestampFontColor.getEntry());
+        }
     }
 }

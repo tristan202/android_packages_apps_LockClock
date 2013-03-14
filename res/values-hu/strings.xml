@@ -134,8 +134,10 @@
     <string name="weather_retrieve_location_dialog_enable_button">Engedélyez</string>
     <string name="weather_invert_lowhigh">Minimum/maximum hőmérséklet megfordítása</string>
     <string name="weather_progress_title">Hely ellenőrzése</string>
-    <string name="weather_alternate_icons_title">Alternatív ikonok használata</string>
-    <string name="weather_alternate_icons_summary">Válasszon az alapértelmezett (fehér), illetve az alternatív (színes) ikonok közül</string>
+    <string name="weather_alternate_icons_title">Színes ikonok használata</string>
+    <string name="weather_alternate_icons_summary">Válasszon az alapértelmezett (színes), illetve az alternatív (fehér) ikonok közül</string>
+    <string name="weather_show_when_minimized_title">Megjelenítés kis méret esetén</string>
+    <string name="weather_show_when_minimized_summary">Időjárási adatok megjelenítése kis modulméret esetén</string>
 
     <!-- Preferences - Calendar -->
     <string name="calendar_title">Megjeleníti a következő naptárbejegyzést</string>
@@ -147,6 +149,12 @@
     <string name="calendar_lookahead_title">Keresési időszak</string>
     <string name="calendar_show_location_title">Esemény helye</string>
     <string name="calendar_show_description_title">Esemény leírása</string>
+
+    <!-- Preferences - Font colors -->
+    <string name="font_color">Betűszín</string>
+    <string name="font_color_alarm">Ébresztés idejének színe</string>
+    <string name="font_color_timestamp">Frissítés idejének színe</string>
+    <string name="font_color_calendar_details">Részletek színe</string>
 
     <!-- Calendar - lookahead -->
     <string name="calendar_lookahead_3hrs">3 óra</string>
@@ -162,5 +170,21 @@
     <string name="calendar_metadata_none">Ne mutassa</string>
     <string name="calendar_metadata_first_line">Csak az első sorát mutassa</string>
     <string name="calendar_metadata_all">A teljeset mutassa</string>
+
+    <!-- Font colors -->
+    <string name="white">Fehér</string>
+    <string name="grey">Szürke</string>
+    <string name="black">Fekete</string>
+    <string name="holo_blue_light">Világoskék</string>
+    <string name="holo_green_light">Világoszöld</string>
+    <string name="holo_red_light">Világos piros</string>
+    <string name="holo_blue_dark">Sötétkék</string>
+    <string name="holo_green_dark">Sötétzöld</string>
+    <string name="holo_red_dark">Sötét vörös</string>
+    <string name="holo_purple">Lila</string>
+    <string name="holo_orange_light">Világos narancs</string>
+    <string name="holo_orange_dark">Sötét narancs</string>
+    <string name="holo_blue_bright">Sötétkék</string>
+
 
 </resources>
