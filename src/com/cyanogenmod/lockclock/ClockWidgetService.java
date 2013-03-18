@@ -24,29 +24,23 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.database.Cursor;
 import android.net.Uri;
-import android.provider.CalendarContract;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
-import android.text.format.DateUtils;
-import android.text.format.Time;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.RemoteViews;
 
-import com.cyanogenmod.lockclock.misc.CalendarInfo;
-import com.cyanogenmod.lockclock.misc.CalendarInfo.EventInfo;
+import com.cyanogenmod.lockclock.calendar.CalendarWidgetService;
 import com.cyanogenmod.lockclock.misc.Constants;
 import com.cyanogenmod.lockclock.misc.Preferences;
 import com.cyanogenmod.lockclock.misc.WidgetUtils;
 import com.cyanogenmod.lockclock.weather.WeatherInfo;
 import com.cyanogenmod.lockclock.weather.WeatherUpdateService;
-
 import java.util.Date;
-import java.util.Set;
+import java.util.Locale;
 
 public class ClockWidgetService extends IntentService {
     private static final String TAG = "ClockWidgetService";
@@ -54,12 +48,13 @@ public class ClockWidgetService extends IntentService {
 
     public static final String ACTION_REFRESH = "com.cyanogenmod.lockclock.action.REFRESH_WIDGET";
     public static final String ACTION_REFRESH_CALENDAR = "com.cyanogenmod.lockclock.action.REFRESH_CALENDAR";
+    public static final String ACTION_HIDE_CALENDAR = "com.cyanogenmod.lockclock.action.HIDE_CALENDAR";
 
-    private static final long DAY_IN_MILLIS = 24L * 60L * 60L * 1000L;
+    // This needs to be static to persist between refreshes until explicitly changed by an intent
+    private static boolean mHideCalendar = false;
 
     private int[] mWidgetIds;
     private AppWidgetManager mAppWidgetManager;
-    private boolean mRefreshCalendar;
 
     public ClockWidgetService() {
         super("ClockWidgetService");
@@ -72,19 +67,30 @@ public class ClockWidgetService extends IntentService {
         ComponentName thisWidget = new ComponentName(this, ClockWidgetProvider.class);
         mAppWidgetManager = AppWidgetManager.getInstance(this);
         mWidgetIds = mAppWidgetManager.getAppWidgetIds(thisWidget);
-
-        mRefreshCalendar = false;
     }
 
     @Override
     protected void onHandleIntent(Intent intent) {
         if (D) Log.d(TAG, "Got intent " + intent);
-        if (intent != null && ACTION_REFRESH_CALENDAR.equals(intent.getAction())) {
-            if (D) Log.v(TAG, "Forcing a calendar refresh");
-            mRefreshCalendar = true;
-        }
 
         if (mWidgetIds != null && mWidgetIds.length != 0) {
+            // Check passed in intents
+            if (intent != null) {
+                if (ACTION_HIDE_CALENDAR.equals(intent.getAction())) {
+                    if (D) Log.v(TAG, "Force hiding the calendar panel");
+                    // Explicitly hide the panel since we received a broadcast indicating no events
+                    mHideCalendar = true;
+                    hideCalendarPanel();
+                    return;
+
+                } else if (ACTION_REFRESH_CALENDAR.equals(intent.getAction())) {
+                    if (D) Log.v(TAG, "Forcing a calendar refresh");
+                    // Start with the panel not explicitly hidden
+                    // If there are no events, a broadcast to the service will hide the panel
+                    mHideCalendar = false;
+                    mAppWidgetManager.notifyAppWidgetViewDataChanged(mWidgetIds, R.id.calendar_list);
+                }
+            }
             refreshWidget();
         }
     }
@@ -122,8 +128,8 @@ public class ClockWidgetService extends IntentService {
             refreshAlarmStatus(remoteViews, smallWidget);
 
             // Don't bother with Calendar if its not enabled
-            if (showCalendar) {
-                showCalendar &= refreshCalendar(remoteViews);
+            if (showCalendar && !mHideCalendar) {
+                refreshCalendar(remoteViews, id);
             }
 
             // Hide the Loading indicator
@@ -153,16 +159,12 @@ public class ClockWidgetService extends IntentService {
 
             // Hide the calendar panel if there is no space for it
             if (showCalendar) {
-                boolean canFitCalendar = WidgetUtils.canFitCalendar(this, id, digitalClock);
+                boolean canFitCalendar = WidgetUtils.canFitCalendar(this, id, digitalClock) && !mHideCalendar;
                 remoteViews.setViewVisibility(R.id.calendar_panel, canFitCalendar ? View.VISIBLE : View.GONE);
             }
 
             // Do the update
             mAppWidgetManager.updateAppWidget(id, remoteViews);
-        }
-
-        if (showCalendar) {
-            scheduleCalendarUpdate();
         }
     }
 
@@ -276,18 +278,18 @@ public class ClockWidgetService extends IntentService {
 
                 if (!smallWidget) {
                     if (Preferences.useBoldFontForDateAndAlarms(this)) {
-                        alarmViews.setTextViewText(R.id.nextAlarm_bold, nextAlarm.toString().toUpperCase());
+                        alarmViews.setTextViewText(R.id.nextAlarm_bold, nextAlarm.toString().toUpperCase(Locale.getDefault()));
                         alarmViews.setViewVisibility(R.id.nextAlarm_bold, View.VISIBLE);
                         alarmViews.setViewVisibility(R.id.nextAlarm_regular, View.GONE);
                         alarmViews.setTextColor(R.id.nextAlarm_bold, color);
                     } else {
-                        alarmViews.setTextViewText(R.id.nextAlarm_regular, nextAlarm.toString().toUpperCase());
+                        alarmViews.setTextViewText(R.id.nextAlarm_regular, nextAlarm.toString().toUpperCase(Locale.getDefault()));
                         alarmViews.setViewVisibility(R.id.nextAlarm_regular, View.VISIBLE);
                         alarmViews.setViewVisibility(R.id.nextAlarm_bold, View.GONE);
                         alarmViews.setTextColor(R.id.nextAlarm_regular, color);
                     }
                 } else {
-                    alarmViews.setTextViewText(R.id.nextAlarm, nextAlarm.toString().toUpperCase());
+                    alarmViews.setTextViewText(R.id.nextAlarm, nextAlarm.toString().toUpperCase(Locale.getDefault()));
                     alarmViews.setViewVisibility(R.id.nextAlarm, View.VISIBLE);
                     alarmViews.setTextColor(R.id.nextAlarm, color);
                 }
@@ -419,348 +421,56 @@ public class ClockWidgetService extends IntentService {
     //===============================================================================================
     // Calendar related functionality
     //===============================================================================================
-    private static CalendarInfo mCalendarInfo = new CalendarInfo();
-
-    private boolean refreshCalendar(RemoteViews calendarViews) {
-        // Load the settings
-        Set<String> calendarList = Preferences.calendarsToDisplay(this);
-        boolean remindersOnly = Preferences.showEventsWithRemindersOnly(this);
-        boolean hideAllDay = !Preferences.showAllDayEvents(this);
-        long lookAhead = Preferences.lookAheadTimeInMs(this);
-        boolean hasEvents = false;
+    private void refreshCalendar(RemoteViews calendarViews, int widgetId) {
+        // Calendar icon: Overlay the selected color and set the imageview
         int color = Preferences.calendarFontColor(this);
-        int detailsColor = Preferences.calendarDetailsFontColor(this);
+        calendarViews.setImageViewBitmap(R.id.calendar_icon,
+                WidgetUtils.getOverlaidBitmap(this, R.drawable.ic_lock_idle_calendar, color));
 
-        // Remove all the views to start
-        calendarViews.removeAllViews(R.id.calendar_panel);
+        // Set up and start the Calendar RemoteViews service
+        final Intent remoteAdapterIntent = new Intent(this, CalendarWidgetService.class);
+        remoteAdapterIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId);
+        remoteAdapterIntent.setData(Uri.parse(remoteAdapterIntent.toUri(Intent.URI_INTENT_SCHEME)));
+        calendarViews.setRemoteAdapter(R.id.calendar_list, remoteAdapterIntent);
+        calendarViews.setEmptyView(R.id.calendar_list, R.id.calendar_empty_view);
 
-        // If we don't have any events yet or forcing a refresh, get the next batch of events
-        if (!mCalendarInfo.hasEvents() || mRefreshCalendar) {
-            if (D) Log.d(TAG, "Checking for calendar events...");
-            getCalendarEvents(lookAhead, calendarList, remindersOnly, hideAllDay);
-            mRefreshCalendar = false;
-        }
+        // Register an onClickListener on Calendar starting the Calendar app
+        final Intent calendarClickIntent = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALENDAR);
+        final PendingIntent calendarClickPendingIntent = PendingIntent.getActivity(this, 0, calendarClickIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        calendarViews.setOnClickPendingIntent(R.id.calendar_icon, calendarClickPendingIntent);
 
-        // Iterate through the events and add them to the views
-        for (EventInfo event : mCalendarInfo.getEvents()) {
-            final RemoteViews itemViews = new RemoteViews(getPackageName(), R.layout.calendar_item);
-
-            // Only set the icon on the first event
-            if (!hasEvents) {
-                // Overlay the selected color and set the imageview
-                itemViews.setImageViewBitmap(R.id.calendar_icon,
-                        WidgetUtils.getOverlaidBitmap(this, R.drawable.ic_lock_idle_calendar, color));
-            }
-
-            // Add the event text fields
-            itemViews.setTextViewText(R.id.calendar_event_title, event.title);
-            itemViews.setTextViewText(R.id.calendar_event_details, event.description);
-            itemViews.setTextColor(R.id.calendar_event_title, color);
-            itemViews.setTextColor(R.id.calendar_event_details, detailsColor);
-
-            if (D) Log.v(TAG, "Showing event: " + event.title);
-
-            // Add the view to the panel
-            calendarViews.addView(R.id.calendar_panel, itemViews);
-            hasEvents = true;
-        }
-
-        // Register an onClickListener on Calendar if it contains any events, starting the Calendar app
-        if (hasEvents) {
-            Intent i = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALENDAR);
-            PendingIntent pi = PendingIntent.getActivity(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
-            calendarViews.setOnClickPendingIntent(R.id.calendar_panel, pi);
-        }
-        return hasEvents;
+        final Intent eventClickIntent = new Intent(Intent.ACTION_VIEW);
+        final PendingIntent eventClickPendingIntent = PendingIntent.getActivity(this, 0, eventClickIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        calendarViews.setPendingIntentTemplate(R.id.calendar_list, eventClickPendingIntent);
     }
 
     /**
-     * Get the next set of calendar events (up to MAX_CALENDAR_ITEMS) within a certain look-ahead time.
-     * Result is stored in the CalendarInfo object
+     * Method to explicitly hide the Calendar panel in all widgets
+     * This is only called from a passed intent to the service if there are no events to show
      */
-    private void getCalendarEvents(long lookahead, Set<String> calendars,
-            boolean remindersOnly, boolean hideAllDay) {
-        long now = System.currentTimeMillis();
-        long later = now + lookahead;
+    private void hideCalendarPanel() {
+        RemoteViews remoteViews;
+        boolean digitalClock = Preferences.showDigitalClock(this);
+        boolean showWeather = Preferences.showWeather(this);
+        boolean showWeatherWhenMinimized = Preferences.showWeatherWhenMinimized(this);
 
-        // Build the 'where' clause
-        StringBuilder where = new StringBuilder();
-        if (remindersOnly) {
-            where.append(CalendarContract.Events.HAS_ALARM + "=1");
-        }
-        if (hideAllDay) {
-            if (remindersOnly) {
-                where.append(" AND ");
-            }
-            where.append(CalendarContract.Events.ALL_DAY + "!=1");
-        }
-        if (calendars != null && calendars.size() > 0) {
-            if (remindersOnly || hideAllDay) {
-                where.append(" AND ");
-            }
-            where.append(CalendarContract.Events.CALENDAR_ID + " in (");
-            int i = 0;
-            for (String s : calendars) {
-                where.append(s);
-                if (i != calendars.size() - 1) {
-                    where.append(",");
-                }
-                i++;
-            }
-            where.append(") ");
-        }
-
-        // Projection array
-        String[] projection = new String[] {
-            CalendarContract.Events._ID,
-            CalendarContract.Events.TITLE,
-            CalendarContract.Instances.BEGIN,
-            CalendarContract.Instances.END,
-            CalendarContract.Events.DESCRIPTION,
-            CalendarContract.Events.EVENT_LOCATION,
-            CalendarContract.Events.ALL_DAY,
-        };
-
-        // The indices for the projection array
-        int EVENT_ID_INDEX = 0;
-        int TITLE_INDEX = 1;
-        int BEGIN_TIME_INDEX = 2;
-        int END_TIME_INDEX = 3;
-        int DESCRIPTION_INDEX = 4;
-        int LOCATION_INDEX = 5;
-        int ALL_DAY_INDEX = 6;
-
-        // all day events are stored in UTC, that is why we need to fetch events after 'later'
-        Uri uri = Uri.withAppendedPath(CalendarContract.Instances.CONTENT_URI,
-                String.format("%d/%d", now - DAY_IN_MILLIS, later + DAY_IN_MILLIS));
-        Cursor cursor = null;
-        mCalendarInfo.clearEvents();
-
-        try {
-            cursor = getContentResolver().query(uri, projection,
-                    where.toString(), null, CalendarContract.Instances.BEGIN + " ASC");
-
-            if (cursor != null) {
-                final int showLocation = Preferences.calendarLocationMode(this);
-                final int showDescription = Preferences.calendarDescriptionMode(this);
-                final Time time = new Time();
-                int eventCount = 0;
-
-                cursor.moveToPosition(-1);
-                // Iterate through returned rows to a maximum number of calendar events
-                while (cursor.moveToNext() && eventCount < Constants.MAX_CALENDAR_ITEMS) {
-                    long eventId = cursor.getLong(EVENT_ID_INDEX);
-                    String title = cursor.getString(TITLE_INDEX);
-                    long begin = cursor.getLong(BEGIN_TIME_INDEX);
-                    long end = cursor.getLong(END_TIME_INDEX);
-                    String description = cursor.getString(DESCRIPTION_INDEX);
-                    String location = cursor.getString(LOCATION_INDEX);
-                    boolean allDay = cursor.getInt(ALL_DAY_INDEX) != 0;
-                    int format = 0;
-
-                    if (allDay) {
-                        begin = convertUtcToLocal(time, begin);
-                        end = convertUtcToLocal(time, end);
-                    }
-
-                    if (end < now || begin > later) {
-                        continue;
-                    }
-
-                    if (D) Log.v(TAG, "Adding event: " + title + " with id: " + eventId);
-
-                    // Start building the event details string
-                    // Starting with the date
-                    StringBuilder sb = new StringBuilder();
-
-                    if (allDay) {
-                        format = Constants.CALENDAR_FORMAT_ALLDAY;
-                    } else if (DateUtils.isToday(begin)) {
-                        format = Constants.CALENDAR_FORMAT_TODAY;
-                    } else {
-                        format = Constants.CALENDAR_FORMAT_FUTURE;
-                    }
-                    if (allDay || begin == end) {
-                        sb.append(DateUtils.formatDateTime(this, begin, format));
-                    } else {
-                        sb.append(DateUtils.formatDateRange(this, begin, end, format));
-                    }
-
-                    // Add the event location if it should be shown
-                    if (showLocation != Preferences.SHOW_NEVER && !TextUtils.isEmpty(location)) {
-                        switch (showLocation) {
-                            case Preferences.SHOW_FIRST_LINE:
-                                int stringEnd = location.indexOf('\n');
-                                if(stringEnd == -1) {
-                                    sb.append(": " + location);
-                                } else {
-                                    sb.append(": " + location.substring(0, stringEnd));
-                                }
-                                break;
-                            case Preferences.SHOW_ALWAYS:
-                                sb.append(": " + location);
-                                break;
-                        }
-                    }
-
-                    // Add the event description if it should be shown
-                    if (showDescription != Preferences.SHOW_NEVER && !TextUtils.isEmpty(description)) {
-                        // Show the appropriate separator
-                        if (showLocation == Preferences.SHOW_NEVER) {
-                            sb.append(": ");
-                        } else {
-                            sb.append(" - ");
-                        }
-
-                        switch (showDescription) {
-                            case Preferences.SHOW_FIRST_LINE:
-                                int stringEnd = description.indexOf('\n');
-                                if(stringEnd == -1) {
-                                    sb.append(description);
-                                } else {
-                                    sb.append(description.substring(0, stringEnd));
-                                }
-                                break;
-                            case Preferences.SHOW_ALWAYS:
-                                sb.append(description);
-                                break;
-                        }
-                    }
-
-                    // Add the event details to the CalendarInfo object and move to next record
-                    mCalendarInfo.addEvent(populateEventInfo(eventId, title, sb.toString(), begin, end, allDay));
-                    eventCount++;
-                }
-            }
-        } catch (Exception e) {
-            // Do nothing
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-        }
-
-        // check for first event outside of lookahead window
-        long endOfLookahead = now + lookahead;
-        long minUpdateTime = getMinUpdateFromNow(endOfLookahead);
-
-        // don't bother with querying if the end result is later than the
-        // minimum update time anyway
-        if (endOfLookahead < minUpdateTime) {
-            if (where.length() > 0) {
-                where.append(" AND ");
-            }
-            where.append(CalendarContract.Instances.BEGIN);
-            where.append(" > ");
-            where.append(endOfLookahead);
-
-            uri = Uri.withAppendedPath(CalendarContract.Instances.CONTENT_URI,
-                    String.format("%d/%d", endOfLookahead, minUpdateTime));
-            projection = new String[] { CalendarContract.Instances.BEGIN };
-            cursor = getContentResolver().query(uri, projection, where.toString(), null,
-                    CalendarContract.Instances.BEGIN + " ASC limit 1");
-
-            if (cursor != null) {
-                if (cursor.moveToFirst()) {
-                    mCalendarInfo.setFollowingEventStart(cursor.getLong(0));
-                }
-                cursor.close();
+        for (int id : mWidgetIds) {
+            // The small widget layout does not include a calendar panel, ignore it
+            boolean smallWidget = showWeather && showWeatherWhenMinimized
+                    && WidgetUtils.showSmallWidget(this, id, digitalClock);
+            if (!smallWidget) {
+                if (D) Log.v(TAG, "Not a small widget, loading widget views and hiding the calendar panel");
+                remoteViews = new RemoteViews(getPackageName(), R.layout.appwidget);
+                remoteViews.setViewVisibility(R.id.calendar_panel, View.GONE);
+                mAppWidgetManager.updateAppWidget(id, remoteViews);
             }
         }
     }
 
-    private long convertUtcToLocal(Time time, long utcTime) {
-        time.timezone = Time.TIMEZONE_UTC;
-        time.set(utcTime);
-        time.timezone = Time.getCurrentTimezone();
-        return time.normalize(true);
-    }
-
-    /**
-     * Construct the EventInfo object
-     */
-    private EventInfo populateEventInfo(long eventId, String title, String description,
-            long begin, long end,  boolean allDay) {
-        EventInfo eventInfo = new EventInfo();
-
-        // Populate
-        eventInfo.id = eventId;
-        eventInfo.title = title;
-        eventInfo.description = description;
-        eventInfo.start = begin;
-        eventInfo.end = end;
-        eventInfo.allDay = allDay;
-
-        return eventInfo;
-    }
-
-    //===============================================================================================
-    // Update timer related functionality
-    //===============================================================================================
-    /**
-     * Calculates and returns the next time we should push widget updates.
-     */
-    private long calculateUpdateTime() {
-        final long now = System.currentTimeMillis();
-        long lookAhead = Preferences.lookAheadTimeInMs(this);
-        long minUpdateTime = getMinUpdateFromNow(now);
-
-        // Check if there is a calendar event earlier
-        for (EventInfo event : mCalendarInfo.getEvents()) {
-            final long end = event.end;
-            final long start = event.start;
-            if (now < start) {
-                minUpdateTime = Math.min(minUpdateTime, start);
-            }
-            if (now < end) {
-                minUpdateTime = Math.min(minUpdateTime, end);
-            }
-        }
-
-        if (mCalendarInfo.getFollowingEventStart() > 0) {
-            // Make sure to update when the next event gets into the lookahead window
-            minUpdateTime = Math.min(minUpdateTime, mCalendarInfo.getFollowingEventStart() - lookAhead);
-        }
-
-        // Construct a log entry in human readable form
-        if (D) {
-            Date date1 = new Date(now);
-            Date date2 = new Date(minUpdateTime);
-            Log.i(TAG, "Chronus: It is now " + DateFormat.getTimeFormat(this).format(date1)
-                    + ", next widget update at " + DateFormat.getTimeFormat(this).format(date2));
-        }
-
-        // Return the next update time
-        return minUpdateTime;
-    }
-
-    private long getMinUpdateFromNow(long now) {
-        /* we update at least once a day */
-        return now + DAY_IN_MILLIS;
-    }
-
-    private static PendingIntent getRefreshIntent(Context context) {
+    public static PendingIntent getRefreshIntent(Context context) {
         Intent i = new Intent(context, ClockWidgetService.class);
-        i.setAction(ACTION_REFRESH_CALENDAR);
+        i.setAction(ClockWidgetService.ACTION_REFRESH_CALENDAR);
         return PendingIntent.getService(context, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
-    }
-
-    /**
-     * Schedule an alarm to trigger an update at the next weather refresh or at the next event
-     * time boundary (start/end).
-     */
-    private void scheduleCalendarUpdate() {
-        PendingIntent pi = getRefreshIntent(this);
-        long updateTime = calculateUpdateTime();
-
-        // Clear any old alarms and schedule the new alarm
-        // Since the updates are now only done very infrequently, it can wake the device to ensure the
-        // latest date is available when the user turns the screen on after a few hours sleep
-        AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        am.cancel(pi);
-        if (updateTime > 0) {
-            am.set(AlarmManager.RTC_WAKEUP, updateTime, pi);
-        }
     }
 
     public static void cancelUpdates(Context context) {

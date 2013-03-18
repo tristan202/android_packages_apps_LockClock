@@ -16,15 +16,12 @@
 
 package com.cyanogenmod.lockclock;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.util.Log;
-
 import com.cyanogenmod.lockclock.misc.Constants;
 import com.cyanogenmod.lockclock.weather.WeatherUpdateService;
 
@@ -36,7 +33,7 @@ public class ClockWidgetProvider extends AppWidgetProvider {
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         // Default handling, triggered via the super class
         if (D) Log.v(TAG, "Updating widgets, default handling.");
-        updateWidgets(context, false);
+        updateWidgets(context, false, false);
     }
 
     @Override
@@ -76,26 +73,34 @@ public class ClockWidgetProvider extends AppWidgetProvider {
                 || Intent.ACTION_DATE_CHANGED.equals(action)
                 || Intent.ACTION_LOCALE_CHANGED.equals(action)
                 || ClockWidgetService.ACTION_REFRESH_CALENDAR.equals(action)) {
-            updateWidgets(context, true);
+            updateWidgets(context, true, false);
+
+        // There are no events to show in the Calendar panel, hide it explicitly
+        } else if (ClockWidgetService.ACTION_HIDE_CALENDAR.equals(action)) {
+            updateWidgets(context, false, true);
 
         // Something we did not handle, let the super class deal with it.
         // This includes the REFRESH_CLOCK intent from Clock settings
         } else {
             if (D) Log.v(TAG, "We did not handle the intent, trigger normal handling");
             super.onReceive(context, intent);
-            updateWidgets(context, false);
+            updateWidgets(context, false, false);
         }
     }
 
     /**
      *  Update the widget via the service.
      */
-    private void updateWidgets(Context context, boolean refreshCalendar) {
+    private void updateWidgets(Context context, boolean refreshCalendar, boolean hideCalendar) {
         // Build the intent and pass on the weather and calendar refresh triggers
         Intent i = new Intent(context.getApplicationContext(), ClockWidgetService.class);
-        i.setAction(refreshCalendar
-                ? ClockWidgetService.ACTION_REFRESH_CALENDAR
-                : ClockWidgetService.ACTION_REFRESH);
+        if (refreshCalendar) {
+            i.setAction(ClockWidgetService.ACTION_REFRESH_CALENDAR);
+        } else if (hideCalendar) {
+            i.setAction(ClockWidgetService.ACTION_HIDE_CALENDAR);
+        } else {
+            i.setAction(ClockWidgetService.ACTION_REFRESH);
+        }
 
         // Start the service. The service itself will take care of scheduling refreshes if needed
         if (D) Log.d(TAG, "Starting the service to update the widgets...");
